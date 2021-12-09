@@ -53,6 +53,6 @@ const OrganisationSchema = new Schema(
   }
 );
 
-const Organisation = model("Organisation", organisationSchema);
+const Organisation = model("organisation", OrganisationSchema);
 
 module.exports = Organisation;

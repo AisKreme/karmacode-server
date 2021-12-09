@@ -1,26 +1,47 @@
 const router = require("express").Router();
 const axios = require("axios");
-const Organisation = require("../models/User.model");
+const Organisation = require("../models/Organisation.model");
 const UserModel = require("../models/User.model");
 
-router.post("/create-organisation", async (req, res) => {
+const isLoggedIn = (req, res, next) => {
+  if (req.session.keks) {
+    next();
+  } else {
+    res.status(400).json("HAU AB");
+  }
+};
+
+router.post("/create-organisation", isLoggedIn, async (req, res) => {
   const { _id } = req.session.keks;
 
   const { name, street, houseNr, zip, city, country, description, image } =
     req.body;
 
-  let streetData = `${houseNr}+${street}+${city}+${country}+${zip}`;
   let contact = {
     user: _id,
     links: [],
   };
 
+  let streetData = `${street}+${houseNr},+${city}+${country}+${zip}`;
+
   try {
     const { data } = await axios.get(
       `https://nominatim.openstreetmap.org/search?q=${streetData}&format=geocodejson`
     );
+    console.log(data);
     const longitude = data.features[0].geometry.coordinates[0];
     const latitude = data.features[0].geometry.coordinates[1];
+
+    if (!name) {
+      res
+        .status(500)
+        .json({ error: "Please enter a name for your organisation." });
+    }
+    if (!street || !houseNr || !zip || !city | !country) {
+      res
+        .status(500)
+        .json({ error: "Please make sure you've entered a valid address." });
+    }
 
     const organisation = await Organisation.create({
       name,
@@ -35,6 +56,77 @@ router.post("/create-organisation", async (req, res) => {
       image,
       contact,
     });
+
+    const user = await UserModel.findByIdAndUpdate(
+      _id,
+      {
+        organisation: organisation._id,
+      },
+      { new: true }
+    );
+    user.password = "***";
+    req.session.keks = user;
+    res.status(200).json(organisation);
+  } catch (err) {
+    res.status(500).json({
+      errorMessage: "Something went wrong! Go to sleep!",
+      message: err,
+    });
+  }
+});
+
+router.post("/edit-organisation", isLoggedIn, async (req, res) => {
+  const { organisation: organisationId } = req.session.keks;
+
+  const {
+    name,
+    street,
+    houseNr,
+    zip,
+    city,
+    country,
+    description,
+    image,
+    contact,
+  } = req.body;
+
+  let streetData = `${street}+${houseNr},+${city}+${country}+${zip}`;
+  try {
+    const { data } = await axios.get(
+      `https://nominatim.openstreetmap.org/search?q=${streetData}&format=geocodejson`
+    );
+    const longitude = data.features[0].geometry.coordinates[0];
+    const latitude = data.features[0].geometry.coordinates[1];
+
+    if (!name) {
+      res
+        .status(500)
+        .json({ error: "Please enter a name for your organisation." });
+    }
+    if (!street || !houseNr || !zip || !city | !country) {
+      res
+        .status(500)
+        .json({ error: "Please make sure you've entered a valid address." });
+    }
+
+    let organisation = await Organisation.findByIdAndUpdate(
+      { _id: organisationId },
+      {
+        name,
+        street,
+        houseNr,
+        zip,
+        city,
+        country,
+        latitude,
+        longitude,
+        description,
+        image,
+        contact,
+      },
+      { new: true }
+    );
+    res.status(200).json(organisation);
   } catch (err) {
     res.status(500).json({
       errorMessage: "Something went wrong! Go to sleep!",

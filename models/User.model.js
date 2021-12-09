@@ -20,7 +20,7 @@ const UserSchema = new Schema(
       type: String,
     },
     organisation: {
-      type: [Schema.Types.ObjectId],
+      type: Schema.Types.ObjectId,
       ref: "Organisation",
     },
   },
