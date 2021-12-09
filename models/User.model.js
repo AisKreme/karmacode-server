@@ -6,11 +6,22 @@ const UserSchema = new Schema(
       type: String,
       unique: true,
     },
+    email: {
+      type: String,
+      unique: true,
+    },
     password: {
+      type: String,
+    },
+    confirmPassword: {
       type: String,
     },
     picture: {
       type: String,
+    },
+    organisation: {
+      type: [Schema.Types.ObjectId],
+      ref: "Organisation",
     },
   },
   {
@@ -20,4 +31,4 @@ const UserSchema = new Schema(
 
 const UserModel = model("user", UserSchema);
 
-module.exports = User;
+module.exports = UserModel;

@@ -2,26 +2,47 @@ const { Schema, model } = require("mongoose");
 
 const OrganisationSchema = new Schema(
   {
-    id: {
-      type: Number,
-      unique: true,
-    },
     name: {
       type: String,
+      unique: true,
+      required: true,
     },
     street: {
+      type: String,
+      required: true,
+    },
+    houseNr: {
       type: String,
     },
     zip: {
       type: String,
+      required: true,
     },
     city: {
       type: String,
+      required: true,
+    },
+    country: {
+      type: String,
+      required: true,
+    },
+    latitude: {
+      type: Number,
+    },
+    longitude: {
+      type: Number,
     },
     description: {
       type: String,
     },
-    picture: {
+    image: {
+      type: String,
+    },
+    contact: {
+      user: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
       links: {
         type: Array,
       },

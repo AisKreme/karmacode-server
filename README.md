@@ -93,7 +93,7 @@ Karmacode is a web app to show charity organisations on a map. As an organisatio
     },
 		organisation: {
 			type: Schema.Types.ObjectId,
-			ref:  "Organisation"
+			ref:  "Organisation",
 		},
 },
 {
@@ -129,11 +129,11 @@ Karmacode is a web app to show charity organisations on a map. As an organisatio
 		latitude: {
 			type: Number,
 			required: true,
-		}
+		},
 		longitude: {
 			type: Number,
 			required: true
-		}
+		},
     description: {
       type: String,
     },
