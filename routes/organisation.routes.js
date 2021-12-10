@@ -1,5 +1,6 @@
 const router = require("express").Router();
 const axios = require("axios");
+const bcrypt = require("bcryptjs");
 const Organisation = require("../models/Organisation.model");
 const UserModel = require("../models/User.model");
 const isLoggedIn = require("../middleware/isLoggedIn");
@@ -134,6 +135,36 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
       { new: true }
     );
     res.status(200).json(organisation);
+  } catch (err) {
+    res.status(500).json({
+      errorMessage: "Something went wrong! Go to sleep!",
+      message: err,
+    });
+  }
+});
+
+router.delete("/organisation/delete", isLoggedIn, async (req, res) => {
+  const { _id } = req.session.keks;
+  const { confirmPassword } = req.body;
+  const errors = {};
+
+  try {
+    const user = await UserModel.findById(_id);
+    const checkPW = bcrypt.compareSync(confirmPassword, user.password);
+    if (!checkPW) {
+      errors.password = "You have entered an incorrect password";
+      res.status(400).json(errors);
+      return;
+    }
+    await UserModel.findByIdAndUpdate(
+      _id,
+      {
+        $unset: { organisation: 1 },
+      },
+      { new: true }
+    );
+    await Organisation.findByIdAndDelete({ _id: user.organisation });
+    res.status(204).json({ message: "Organisation deleted" });
   } catch (err) {
     res.status(500).json({
       errorMessage: "Something went wrong! Go to sleep!",
