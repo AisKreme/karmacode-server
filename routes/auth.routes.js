@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const UserModel = require("../models/User.model");
+const Organisation = require("../models/Organisation.model");
+const isLoggedIn = require("../middleware/isLoggedIn");
 
 //we installed bcrypt.js
 const bcrypt = require("bcryptjs");
@@ -11,7 +13,6 @@ const {
 
 router.post("/signup", async (req, res) => {
   const { username, email, password, confirmPassword } = req.body;
-  console.log(username, email, password, confirmPassword);
   const { notValid, errors } = validateRegisterInput(
     username,
     email,
@@ -107,24 +108,41 @@ router.post("/login", async (req, res, next) => {
   }
 });
 
+router.delete("/user/delete", isLoggedIn, async (req, res) => {
+  const { _id } = req.session.keks;
+  const { confirmPassword } = req.body;
+  const errors = {};
+
+  try {
+    const user = await UserModel.findById(_id);
+
+    const checkPW = bcrypt.compareSync(confirmPassword, user.password);
+
+    if (!checkPW) {
+      errors.password = "You have entered an incorrect password";
+      res.status(400).json(errors);
+      return;
+    }
+    if (user.organisation) {
+      await Organisation.findByIdAndDelete({ _id: user.organisation });
+    }
+
+    await UserModel.findByIdAndDelete(_id);
+    req.session.destroy();
+    res.status(204).json({});
+  } catch (err) {
+    res.status(500).json({
+      errorMessage: "Something went wrong! Go to sleep!",
+      message: err,
+    });
+  }
+});
+
 // will handle all POST requests to http:localhost:5005/api/logout
 router.post("/logout", (req, res) => {
   req.session.destroy();
   res.status(204).json({});
 });
-
-// middleware to check if user is loggedIn
-const isLoggedIn = (req, res, next) => {
-  if (req.session.loggedInUser) {
-    //calls whatever is to be executed after the isLoggedIn function is over
-    next();
-  } else {
-    res.status(401).json({
-      message: "Unauthorized user",
-      code: 401,
-    });
-  }
-};
 
 // THIS IS A PROTECTED ROUTE
 // will handle all get requests to http:localhost:5005/api/user

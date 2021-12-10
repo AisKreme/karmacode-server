@@ -16,7 +16,7 @@ const UserSchema = new Schema(
     confirmPassword: {
       type: String,
     },
-    picture: {
+    image: {
       type: String,
     },
     organisation: {

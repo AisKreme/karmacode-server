@@ -2,14 +2,7 @@ const router = require("express").Router();
 const axios = require("axios");
 const Organisation = require("../models/Organisation.model");
 const UserModel = require("../models/User.model");
-
-const isLoggedIn = (req, res, next) => {
-  if (req.session.keks) {
-    next();
-  } else {
-    res.status(400).json("HAU AB");
-  }
-};
+const isLoggedIn = require("../middleware/isLoggedIn");
 
 router.post("/create-organisation", isLoggedIn, async (req, res) => {
   const { _id } = req.session.keks;
@@ -22,13 +15,11 @@ router.post("/create-organisation", isLoggedIn, async (req, res) => {
     links: [],
   };
 
-  let streetData = `${street}+${houseNr},+${city}+${country}+${zip}`;
-
+  let streetData = `street=${houseNr}+${street},&city=${city},&country=${country},&postalcode=${zip}`;
   try {
     const { data } = await axios.get(
-      `https://nominatim.openstreetmap.org/search?q=${streetData}&format=geocodejson`
+      `https://nominatim.openstreetmap.org/search?${streetData}&format=geocodejson`
     );
-    console.log(data);
     const longitude = data.features[0].geometry.coordinates[0];
     const latitude = data.features[0].geometry.coordinates[1];
 
@@ -37,10 +28,18 @@ router.post("/create-organisation", isLoggedIn, async (req, res) => {
         .status(500)
         .json({ error: "Please enter a name for your organisation." });
     }
-    if (!street || !houseNr || !zip || !city | !country) {
+    if (
+      !street ||
+      !houseNr ||
+      !zip ||
+      !city ||
+      !country ||
+      !longitude ||
+      !latitude
+    ) {
       res
         .status(500)
-        .json({ error: "Please make sure you've entered a valid address." });
+        .json({ error: "Please make sure to enter a valid address." });
     }
 
     const organisation = await Organisation.create({
@@ -75,7 +74,7 @@ router.post("/create-organisation", isLoggedIn, async (req, res) => {
   }
 });
 
-router.post("/edit-organisation", isLoggedIn, async (req, res) => {
+router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
   const { organisation: organisationId } = req.session.keks;
 
   const {
@@ -90,10 +89,10 @@ router.post("/edit-organisation", isLoggedIn, async (req, res) => {
     contact,
   } = req.body;
 
-  let streetData = `${street}+${houseNr},+${city}+${country}+${zip}`;
+  let streetData = `street=${houseNr}+${street},&city=${city},&country=${country},&postalcode=${zip}`;
   try {
     const { data } = await axios.get(
-      `https://nominatim.openstreetmap.org/search?q=${streetData}&format=geocodejson`
+      `https://nominatim.openstreetmap.org/search?${streetData}&format=geocodejson`
     );
     const longitude = data.features[0].geometry.coordinates[0];
     const latitude = data.features[0].geometry.coordinates[1];
@@ -103,10 +102,18 @@ router.post("/edit-organisation", isLoggedIn, async (req, res) => {
         .status(500)
         .json({ error: "Please enter a name for your organisation." });
     }
-    if (!street || !houseNr || !zip || !city | !country) {
+    if (
+      !street ||
+      !houseNr ||
+      !zip ||
+      !city ||
+      !country ||
+      !longitude ||
+      !latitude
+    ) {
       res
         .status(500)
-        .json({ error: "Please make sure you've entered a valid address." });
+        .json({ error: "Please make sure to enter a valid address." });
     }
 
     let organisation = await Organisation.findByIdAndUpdate(
