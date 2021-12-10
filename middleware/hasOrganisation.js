@@ -1,6 +1,6 @@
 const hasOrganisation = (req, res, next) => {
   const { organisation } = req.session.keks;
-  console.log("Check:", req.session.keks);
+  console.log(organisation);
   if (!organisation) {
     next();
   } else {

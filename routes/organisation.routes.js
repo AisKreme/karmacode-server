@@ -155,21 +155,22 @@ router.delete("/organisation/delete", isLoggedIn, async (req, res) => {
   const errors = {};
 
   try {
-    const user = await UserModel.findById(_id);
+    let user = await UserModel.findById(_id);
     const checkPW = bcrypt.compareSync(confirmPassword, user.password);
     if (!checkPW) {
       errors.password = "You have entered an incorrect password";
       res.status(400).json(errors);
       return;
     }
-    await UserModel.findByIdAndUpdate(
+
+    await Organisation.findByIdAndDelete({ _id: user.organisation });
+    user = await UserModel.findByIdAndUpdate(
       _id,
       {
         $unset: { organisation: 1 },
       },
       { new: true }
     );
-    await Organisation.findByIdAndDelete({ _id: user.organisation });
     user.password = "***";
     req.session.keks = user;
     res.status(204).json({ message: "Organisation deleted" });
