@@ -69,7 +69,7 @@ Karmacode is a web app to show charity organisations on a map. As an organisatio
 | POST   | /login :heavy_check_mark:               |
 | POST   | /logout :heavy_check_mark:              |
 | POST   | /user/delete :heavy_check_mark:         |
-| GET    | /organisation/:id                       |
+| GET    | /organisation/:id :heavy_check_mark:    |
 | POST   | /create-organisation :heavy_check_mark: |
 | POST   | /edit-organisation :heavy_check_mark:   |
 | POST   | /organisation/delete :heavy_check_mark: |

@@ -6,6 +6,38 @@ const UserModel = require("../models/User.model");
 const isLoggedIn = require("../middleware/isLoggedIn");
 const hasOrganisation = require("../middleware/hasOrganisation");
 
+router.get("/organisation/all", async (req, res) => {
+  try {
+    const organisation = await Organisation.find({});
+    // const allOrga = JSON.parse(JSON.stringify(organisation));
+    // const ids = allOrga.map((orga) => orga._id);
+    // const paths = ids.map((id) => ({ params: { id: id.toString() } }));
+    res.status(200).json(organisation);
+  } catch (err) {
+    res.status(500).json({
+      errorMessage: "Something went wrong! Go to sleep!",
+      message: err,
+    });
+  }
+});
+
+router.get("/organisation/:id", async (req, res) => {
+  const { id: _id } = req.params;
+
+  try {
+    const organisation = await Organisation.findById({ _id }).populate(
+      "contact"
+    );
+
+    res.status(200).json(organisation);
+  } catch (err) {
+    res.status(500).json({
+      errorMessage: "Something went wrong! Go to sleep!",
+      message: err,
+    });
+  }
+});
+
 router.post(
   "/create-organisation",
   isLoggedIn,
@@ -21,7 +53,7 @@ router.post(
       links: [],
     };
 
-    let streetData = `street=${houseNr}+${street},&city=${city},&country=${country},&postalcode=${zip}`;
+    let streetData = `street=${houseNr}+${street}&city=${city}&country=${country}&postalcode=${zip}`;
     try {
       const { data } = await axios.get(
         `https://nominatim.openstreetmap.org/search?${streetData}&format=geocodejson`
@@ -68,10 +100,10 @@ router.post(
           organisation: organisation._id,
         },
         { new: true }
-      );
+      ).populate("organisation");
       user.password = "***";
       req.session.keks = user;
-      res.status(200).json(organisation);
+      res.status(200).json(user);
     } catch (err) {
       res.status(500).json({
         errorMessage: "Something went wrong! Go to sleep!",
@@ -96,7 +128,7 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
     contact,
   } = req.body;
 
-  let streetData = `street=${houseNr}+${street},&city=${city},&country=${country},&postalcode=${zip}`;
+  let streetData = `street=${houseNr}+${street}&city=${city}&country=${country}&postalcode=${zip}`;
   try {
     const { data } = await axios.get(
       `https://nominatim.openstreetmap.org/search?${streetData}&format=geocodejson`
@@ -171,7 +203,11 @@ router.delete("/organisation/delete", isLoggedIn, async (req, res) => {
       },
       { new: true }
     );
-    user.password = "***";
+    delete user._doc.email;
+    delete user._doc.password;
+    delete user._doc.createdAt;
+    delete user._doc.updatedAt;
+    delete user._doc.__v;
     req.session.keks = user;
     res.status(204).json({ message: "Organisation deleted" });
   } catch (err) {

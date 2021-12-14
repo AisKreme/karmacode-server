@@ -38,6 +38,11 @@ router.post("/signup", async (req, res) => {
       image,
     });
     errors.username = "User not found";
+    delete user._doc.email;
+    delete user._doc.password;
+    delete user._doc.createdAt;
+    delete user._doc.updatedAt;
+    delete user._doc.__v;
     req.session.keks = user;
     res.status(200).json(user);
   } catch (err) {
@@ -92,7 +97,11 @@ router.post("/login", async (req, res, next) => {
     const checkPW = bcrypt.compareSync(password, user.password);
 
     if (checkPW) {
-      user.password = "***";
+      delete user._doc.email;
+      delete user._doc.password;
+      delete user._doc.createdAt;
+      delete user._doc.updatedAt;
+      delete user._doc.__v;
       req.session.keks = user;
       res.status(200).json(user);
     } else {
@@ -101,10 +110,8 @@ router.post("/login", async (req, res, next) => {
       return;
     }
   } catch (err) {
-    res.status(500).json({
-      errorMessage: "Something went wrong! Go to sleep!",
-      message: err,
-    });
+    errors.username = "User not found. Please Sign up first.";
+    res.status(500).json(errors);
   }
 });
 
