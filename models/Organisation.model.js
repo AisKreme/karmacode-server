@@ -38,6 +38,12 @@ const OrganisationSchema = new Schema(
     image: {
       type: String,
     },
+    projects: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Project",
+      },
+    ],
     contact: {
       user: {
         type: Schema.Types.ObjectId,

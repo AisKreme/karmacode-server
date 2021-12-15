@@ -5,6 +5,22 @@ const Organisation = require("../models/Organisation.model");
 const UserModel = require("../models/User.model");
 const isLoggedIn = require("../middleware/isLoggedIn");
 const hasOrganisation = require("../middleware/hasOrganisation");
+const { populate } = require("../models/Organisation.model");
+
+router.get("/user/:id", async (req, res) => {
+  const { id: _id } = req.params;
+
+  try {
+    const user = await UserModel.findById({ _id });
+
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({
+      errorMessage: "Something went wrong! Go to sleep!",
+      message: err,
+    });
+  }
+});
 
 router.get("/organisation/all", async (req, res) => {
   try {
@@ -25,9 +41,7 @@ router.get("/organisation/:id", async (req, res) => {
   const { id: _id } = req.params;
 
   try {
-    const organisation = await Organisation.findById({ _id }).populate(
-      "contact"
-    );
+    const organisation = await Organisation.findById({ _id });
 
     res.status(200).json(organisation);
   } catch (err) {
@@ -44,7 +58,6 @@ router.post(
   hasOrganisation,
   async (req, res) => {
     const { _id } = req.session.keks;
-
     const { name, street, houseNr, zip, city, country, description, image } =
       req.body;
 
@@ -60,7 +73,6 @@ router.post(
       );
       const longitude = data.features[0].geometry.coordinates[0];
       const latitude = data.features[0].geometry.coordinates[1];
-
       if (!name) {
         res
           .status(500)
@@ -75,7 +87,7 @@ router.post(
         !longitude ||
         !latitude
       ) {
-        res
+        return res
           .status(500)
           .json({ error: "Please make sure to enter a valid address." });
       }
@@ -93,26 +105,24 @@ router.post(
         image,
         contact,
       });
-
       const user = await UserModel.findByIdAndUpdate(
         _id,
         {
           organisation: organisation._id,
         },
         { new: true }
-      ).populate("organisation");
+      );
       user.password = "***";
       req.session.keks = user;
       res.status(200).json(user);
     } catch (err) {
       res.status(500).json({
-        errorMessage: "Something went wrong! Go to sleep!",
+        errorMessage: "Something went wrong! Go to sleep2!",
         message: err,
       });
     }
   }
 );
-
 router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
   const { organisation: organisationId } = req.session.keks;
 
@@ -183,17 +193,17 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
 
 router.delete("/organisation/delete", isLoggedIn, async (req, res) => {
   const { _id } = req.session.keks;
-  const { confirmPassword } = req.body;
+  // const { confirmPassword } = req.body;
   const errors = {};
 
   try {
     let user = await UserModel.findById(_id);
-    const checkPW = bcrypt.compareSync(confirmPassword, user.password);
-    if (!checkPW) {
-      errors.password = "You have entered an incorrect password";
-      res.status(400).json(errors);
-      return;
-    }
+    // const checkPW = bcrypt.compareSync(confirmPassword, user.password);
+    // if (!checkPW) {
+    //   errors.password = "You have entered an incorrect password";
+    //   res.status(400).json(errors);
+    //   return;
+    // }
 
     await Organisation.findByIdAndDelete({ _id: user.organisation });
     user = await UserModel.findByIdAndUpdate(
@@ -203,13 +213,9 @@ router.delete("/organisation/delete", isLoggedIn, async (req, res) => {
       },
       { new: true }
     );
-    delete user._doc.email;
-    delete user._doc.password;
-    delete user._doc.createdAt;
-    delete user._doc.updatedAt;
-    delete user._doc.__v;
+    user.password = "***";
     req.session.keks = user;
-    res.status(204).json({ message: "Organisation deleted" });
+    res.status(204).json({});
   } catch (err) {
     res.status(500).json({
       errorMessage: "Something went wrong! Go to sleep!",

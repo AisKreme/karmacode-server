@@ -47,6 +47,9 @@ app.use("/api", authRoutes);
 const orgaRoutes = require("./routes/organisation.routes");
 app.use("/api", orgaRoutes);
 
+const projectRoutes = require("./routes/project.routes");
+app.use("/api", projectRoutes);
+
 app.use((req, res, next) => {
   // If no routes match, send them the React HTML.
   res.sendFile(__dirname + "/public/index.html");
