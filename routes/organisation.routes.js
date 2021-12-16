@@ -112,7 +112,7 @@ router.post(
           organisation: organisation._id,
         },
         { new: true }
-      );
+      ).populate("organisation");
       user.password = "***";
       req.session.keks = user;
       res.status(200).json(user);

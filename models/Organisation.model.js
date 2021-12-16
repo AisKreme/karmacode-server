@@ -47,7 +47,7 @@ const OrganisationSchema = new Schema(
     contact: {
       user: {
         type: Schema.Types.ObjectId,
-        ref: "User",
+        ref: "user",
       },
       links: {
         type: Array,
