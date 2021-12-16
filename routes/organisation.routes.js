@@ -137,6 +137,7 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
     contact,
   } = req.body;
 
+  console.log("HIT");
   let streetData = `street=${houseNr}+${street}&city=${city}&country=${country}&postalcode=${zip}`;
   try {
     const { data } = await axios.get(
@@ -163,7 +164,6 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
       res.status(500).json(errorAddress);
       return;
     }
-
     let organisation = await Organisation.findByIdAndUpdate(
       { _id: organisationId },
       {
