@@ -6,11 +6,38 @@ const ProjectSchema = new Schema(
       type: String,
       required: true,
     },
+    street: {
+      type: String,
+      required: true,
+    },
+    houseNr: {
+      type: String,
+    },
+    zip: {
+      type: String,
+      required: true,
+    },
+    city: {
+      type: String,
+      required: true,
+    },
+    country: {
+      type: String,
+      required: true,
+    },
+    latitude: {
+      type: Number,
+    },
+    longitude: {
+      type: Number,
+    },
     description: {
       type: String,
     },
     image: {
-      type: String,
+      url: {
+        type: String,
+      },
     },
     organisation: {
       type: Schema.Types.ObjectId,

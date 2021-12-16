@@ -41,7 +41,9 @@ router.get("/organisation/:id", async (req, res) => {
   const { id: _id } = req.params;
 
   try {
-    const organisation = await Organisation.findById({ _id });
+    const organisation = await Organisation.findById({ _id }).populate(
+      "projects"
+    );
 
     res.status(200).json(organisation);
   } catch (err) {
@@ -60,7 +62,6 @@ router.post(
     const { _id } = req.session.keks;
     const { name, street, houseNr, zip, city, country, description, image } =
       req.body;
-
     let contact = {
       user: _id,
       links: [],
@@ -74,9 +75,9 @@ router.post(
       const longitude = data.features[0].geometry.coordinates[0];
       const latitude = data.features[0].geometry.coordinates[1];
       if (!name) {
-        res
-          .status(500)
-          .json({ error: "Please enter a name for your organisation." });
+        let errorName = "Please enter a name for your organisation.";
+        res.status(500).json(errorName);
+        return;
       }
       if (
         !street ||
@@ -87,9 +88,9 @@ router.post(
         !longitude ||
         !latitude
       ) {
-        return res
-          .status(500)
-          .json({ error: "Please make sure to enter a valid address." });
+        let errorAddress = "Please make sure to enter a valid address.";
+        res.status(500).json(errorAddress);
+        return;
       }
 
       const organisation = await Organisation.create({
@@ -116,10 +117,8 @@ router.post(
       req.session.keks = user;
       res.status(200).json(user);
     } catch (err) {
-      res.status(500).json({
-        errorMessage: "Something went wrong! Go to sleep2!",
-        message: err,
-      });
+      errorSomething = "Something went wrong! PLEASE MOVE BACK!";
+      res.status(500).json(errorSomething);
     }
   }
 );
@@ -147,9 +146,9 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
     const latitude = data.features[0].geometry.coordinates[1];
 
     if (!name) {
-      res
-        .status(500)
-        .json({ error: "Please enter a name for your organisation." });
+      let errorName = "Please enter a name for your organisation.";
+      res.status(500).json(errorName);
+      return;
     }
     if (
       !street ||
@@ -160,9 +159,9 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
       !longitude ||
       !latitude
     ) {
-      res
-        .status(500)
-        .json({ error: "Please make sure to enter a valid address." });
+      let errorAddress = "Please make sure to enter a valid address.";
+      res.status(500).json(errorAddress);
+      return;
     }
 
     let organisation = await Organisation.findByIdAndUpdate(
@@ -184,10 +183,8 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
     );
     res.status(200).json(organisation);
   } catch (err) {
-    res.status(500).json({
-      errorMessage: "Something went wrong! Go to sleep!",
-      message: err,
-    });
+    errorSomething = "Something went wrong! PLEASE MOVE BACK!";
+    res.status(500).json(errorSomething);
   }
 });
 
@@ -217,10 +214,8 @@ router.delete("/organisation/delete", isLoggedIn, async (req, res) => {
     req.session.keks = user;
     res.status(204).json({});
   } catch (err) {
-    res.status(500).json({
-      errorMessage: "Something went wrong! Go to sleep!",
-      message: err,
-    });
+    errorSomething = "Something went wrong! PLEASE MOVE BACK!";
+    res.status(500).json(errorSomething);
   }
 });
 
