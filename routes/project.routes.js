@@ -40,8 +40,8 @@ router.post(
   isLoggedIn,
   canCreateProject,
   async (req, res) => {
-    const { organisation } = req.session.keks;
-
+    const { organisation: organisationId } = req.session.keks;
+    let _id = null;
     let { name, street, houseNr, zip, city, country, description, image } =
       req.body;
     let streetData = `street=${houseNr}+${street}&city=${city}&country=${country}&postalcode=${zip}`;
@@ -84,8 +84,14 @@ router.post(
         description,
         image,
       });
+      if (organisationId._id) {
+        _id = organisationId._id;
+      } else {
+        _id = organisationId;
+      }
+
       let orgaUpdated = await Organisation.findByIdAndUpdate(
-        { _id: organisation },
+        { _id },
         {
           $push: { projects: project._id },
         },

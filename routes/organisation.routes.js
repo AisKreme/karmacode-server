@@ -124,7 +124,7 @@ router.post(
 );
 router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
   const { organisation: organisationId } = req.session.keks;
-
+  let _id = null;
   const {
     name,
     street,
@@ -137,7 +137,6 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
     contact,
   } = req.body;
 
-  console.log("HIT");
   let streetData = `street=${houseNr}+${street}&city=${city}&country=${country}&postalcode=${zip}`;
   try {
     const { data } = await axios.get(
@@ -164,8 +163,13 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
       res.status(500).json(errorAddress);
       return;
     }
+    if (organisationId._id) {
+      _id = organisationId._id;
+    } else {
+      _id = organisationId;
+    }
     let organisation = await Organisation.findByIdAndUpdate(
-      { _id: organisationId },
+      { _id },
       {
         name,
         street,
@@ -181,6 +185,7 @@ router.patch("/edit-organisation", isLoggedIn, async (req, res) => {
       },
       { new: true }
     );
+
     res.status(200).json(organisation);
   } catch (err) {
     errorSomething = "Something went wrong! PLEASE MOVE BACK!";
