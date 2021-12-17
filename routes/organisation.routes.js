@@ -3,6 +3,7 @@ const axios = require("axios");
 const bcrypt = require("bcryptjs");
 const Organisation = require("../models/Organisation.model");
 const UserModel = require("../models/User.model");
+const Project = require("../models/Project.model");
 const isLoggedIn = require("../middleware/isLoggedIn");
 const hasOrganisation = require("../middleware/hasOrganisation");
 const { populate } = require("../models/Organisation.model");
@@ -207,7 +208,15 @@ router.delete("/organisation/delete", isLoggedIn, async (req, res) => {
     //   return;
     // }
 
-    await Organisation.findByIdAndDelete({ _id: user.organisation });
+    let orgaRes = await Organisation.findByIdAndDelete({
+      _id: user.organisation,
+    });
+
+    let projectIds = orgaRes.projects.map((elem) => elem);
+    projectIds.forEach(async (elem) => {
+      await Project.findByIdAndDelete({ _id: elem._id });
+    });
+
     user = await UserModel.findByIdAndUpdate(
       _id,
       {
